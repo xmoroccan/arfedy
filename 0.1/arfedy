@@ -65,37 +65,44 @@ def __get_kernel_name():
 		return kernel
 
 def add_keepcache():
+	msg("Add KeepCache to DNF.")
 	check_root()
 	keepcache="keepcache = True\n"
-	b=True
 	with open("/etc/dnf/dnf.conf","r") as myfile:
 		for line in myfile.readlines():
-			if line.strip().startswith("keepcache"):
-				b=False
-	if b:
-		with open("/etc/dnf/dnf.conf","a") as myfile:
-			myfile.write(keepcache)
+			if line.strip().startswith("keepcache") !== True:
+				with open("/etc/dnf/dnf.conf","a") as myfile:
+					myfile.write(keepcache)
+					
+	return main("Add KeepCache Option Success.")
 
 def add_fastestmirror():
+	msg("Add FastestMirror To DNF.")
+			
 	check_root()
 	fastestmirror="fastestmirror = True\n"
 	b=True
 	with open("/etc/dnf/dnf.conf","r") as myfile:
 		for line in myfile.readlines():
-			if line.strip().startswith("fastestmirror"):
-				b=False
-	if b:
-		with open("/etc/dnf/dnf.conf","a") as myfile:
-			myfile.write(fastestmirror)
+			if line.strip().startswith("fastestmirror") != True:
+				with open("/etc/dnf/dnf.conf","a") as myfile:
+					myfile.write(fastestmirror)
+					
+	return main("Add FastestMirror Option Success.")
+		
 			
 def install_arabicfonts():
+	msg("Install Arabic Fonts.")
 	check_root()
 	check=subprocess.call("dnf -y --best install @arabic-support",shell=True)
 	if check!=0:
 			return main("Error Check Your Connection || Check dnf.")
+		
+	return main("Install Arabic Fonts Success.")
 	
 
 def install_googlechrome():
+	msg("Install Google Chrome.")	
 	check_root()
 	global gb
 	gb=True
@@ -115,10 +122,13 @@ gpgkey=https://dl.google.com/linux/linux_signing_key.pub
 		if check!=0:
 				return main("Error Check Your Connection || Check dnf.")
 	else:
-		gb=False
 		talwin("Google Chrome Support GNU/LINUX 64bit Only.","red")
+		return  main("Google Chrome Support GNU/LINUX 64bit Only.")
+	
+	return main("Install Google Chrome Success.")
 
 def __install_kernel_headers_devel():
+	msg("Install kernel-heasers kernel-devel.")			
 	check_root()
 	kernel=__get_kernel_name()
 	if arch=="x86_64":
@@ -131,8 +141,11 @@ def __install_kernel_headers_devel():
 		@c-development @development-tools"%(kernel,kernel,kernel),shell=True)
 		if check!=0:
 			return main("Error Check Your Connection || Check dnf || Update And Reboot System And Try Again.")
+		else:
+			return main("\nInstall kernel-heasers kernel-devel Success.\n")
 
 def installvirtuablox():
+	msg("Install VirtualBox From RPMFUSION Repos.")
 	check_root()
 	__install_kernel_headers_devel()
 	install_rpmfusionrepos()
@@ -149,6 +162,7 @@ def installvirtuablox():
 	talwin("\nPlease Wait...\n","blue")
 	subprocess.call("akmods --force",shell=True)
 	subprocess.call("systemctl restart systemd-modules-load",shell=True)
+	return main("\nInstall VirtualBox Success Please Reboot Your PC.\n")
 	
 
 def install_compressp():
@@ -158,14 +172,18 @@ def install_compressp():
 		return main("Error Check Your Connection || Check dnf.")
 	
 def install_rpmfusionrepos():
+	msg("Install RPMFUSION Repos.")
+	
 	check_root()
 	check=subprocess.call("dnf install  --best -y --nogpgcheck  \
 	http://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm \
 	http://download1.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm",shell=True)
 	if check!=0:
 		return main("Error Check Your Connection || Check dnf.")
+	return main("Install RPMFUSION Repos Success.")
 	
 def install_codecs():
+	msg("Install Codecs.")
 	check_root()
 	install_rpmfusionrepos()
 	subprocess.call("dnf config-manager --set-enabled fedora-cisco-openh264 -y",shell=True)
@@ -176,6 +194,8 @@ def install_codecs():
 	--setopt=strict=0",shell=True)
 	if check!=0:
 		return main("Error Check Your Connection || Check dnf.")
+	
+	return main("Install Codecs Success.")
 
 def install_torrent_client():
 	check_root()
@@ -242,6 +262,27 @@ def main(ms=""):
 		talwin("Choice Number || q to Exit.\n-","blue",end="")
 		answer=input().strip()
 		ms=""
+		
+		##
+		# functions maps using dictionaries insted of if elsif blocks
+		# Why -> reduce the code and make it easy to add other functionalities later.
+		##
+		
+		options = {1 : install_rpmfusionrepos,
+			   2 : install_codecs,
+			   3 : __install_kernel_headers_devel,
+			   4 : installvirtuablox,
+			   5 : install_googlechrome,
+			   6 : add_keepcache,
+			   7 : add_fastestmirror,
+			   8 : install_arabicfonts,
+			   9 : install_compressp,
+			   10 : install_torrent_client,
+			   11 : add_user_to_sudoers,
+			   12 : install_broadcom_driver,
+			   13 : install_all
+			}
+		
 		if answer=="1":
 			msg("Install RPMFUSION Repos.")
 			install_rpmfusionrepos()
@@ -268,7 +309,7 @@ def main(ms=""):
 				return main("Install Google Chrome Success.")
 			return  main("Google Chrome Support GNU/LINUX 64bit Only.")
 		elif answer=="6":
-			msg("Add KeepCache To DNF.")
+			msg("Add KeepCache to DNF.")
 			add_keepcache()
 			return main("Add KeepCache Option Success.")
 			
